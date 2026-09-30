@@ -7,10 +7,17 @@ const { nanoid } = require('nanoid');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* ---------- SUBJECTS ---------- */
+const ADMIN_KEY = process.env.ADMIN_KEY || 'change-me';
+const activeQuizzes = {}; // in-memory quiz sessions
+
+/* ============================================================
+   PUBLIC API
+   ============================================================ */
+
+// List subjects
 app.get('/api/subjects', (req, res) => {
   const rows = db.prepare(`
     SELECT subject, COUNT(*) as count FROM questions GROUP BY subject ORDER BY subject
@@ -18,7 +25,7 @@ app.get('/api/subjects', (req, res) => {
   res.json(rows);
 });
 
-/* ---------- START QUIZ: returns 10 random questions ---------- */
+// Get 10 random questions for a subject + issue a quiz token
 app.get('/api/quiz/:subject', (req, res) => {
   const subject = req.params.subject;
   const rows = db.prepare(`
@@ -28,8 +35,7 @@ app.get('/api/quiz/:subject', (req, res) => {
 
   if (!rows.length) return res.status(404).json({ error: 'No questions for this subject' });
 
-  // Generate a one-time token tied to these question IDs (in-memory map for simplicity)
-  const quizId = nanoid(10);
+  const quizId = nanoid(12);
   activeQuizzes[quizId] = {
     subject,
     ids: rows.map(r => r.id),
@@ -39,13 +45,11 @@ app.get('/api/quiz/:subject', (req, res) => {
   res.json({ quizId, subject, questions: rows });
 });
 
-/* ---------- SUBMIT QUIZ ---------- */
-const activeQuizzes = {}; // in-memory; use Redis in production
-
+// Submit answers → score + save attempt
 app.post('/api/submit', (req, res) => {
   const { quizId, answers, nickname, timeTaken } = req.body;
   const meta = activeQuizzes[quizId];
-  if (!meta) return res.status(400).json({ error: 'Invalid or expired quiz' });
+  if (!meta) return res.status(400).json({ error: 'Invalid or expired quiz session' });
 
   const placeholders = meta.ids.map(() => '?').join(',');
   const rows = db.prepare(`
@@ -53,14 +57,15 @@ app.post('/api/submit', (req, res) => {
   `).all(...meta.ids);
 
   let score = 0;
-  rows.forEach(q => {
-    if (answers[q.id] === q.correct) score++;
-  });
+  for (const q of rows) {
+    if (answers && answers[q.id] === q.correct) score++;
+  }
 
   const info = db.prepare(`
     INSERT INTO attempts (subject, score, total, time_taken, nickname)
     VALUES (?, ?, ?, ?, ?)
-  `).run(meta.subject, score, meta.ids.length, timeTaken || 0, nickname || 'Anonymous');
+  `).run(meta.subject, score, meta.ids.length,
+         timeTaken || 0, (nickname || 'Anonymous').slice(0, 40));
 
   delete activeQuizzes[quizId];
 
@@ -72,34 +77,37 @@ app.post('/api/submit', (req, res) => {
   });
 });
 
-/* ---------- LEADERBOARD ---------- */
+// Leaderboard for a subject
 app.get('/api/leaderboard/:subject', (req, res) => {
   const rows = db.prepare(`
     SELECT nickname, score, total, time_taken, created_at
     FROM attempts WHERE subject = ?
-    ORDER BY score DESC, time_taken ASC, created_at ASC LIMIT 20
+    ORDER BY score DESC, time_taken ASC, created_at ASC
+    LIMIT 20
   `).all(req.params.subject);
   res.json(rows);
 });
 
-/* ---------- STATS ---------- */
+// Stats: attempts + likes
 app.get('/api/stats/:subject', (req, res) => {
   const s = req.params.subject;
   const attempts = db.prepare(`SELECT COUNT(*) c FROM attempts WHERE subject=?`).get(s).c;
-  const likes = db.prepare(`SELECT count FROM likes WHERE subject=?`).get(s)?.count || 0;
-  res.json({ attempts, likes });
+  const likesRow = db.prepare(`SELECT count FROM likes WHERE subject=?`).get(s);
+  res.json({ attempts, likes: likesRow ? likesRow.count : 0 });
 });
 
-/* ---------- LIKES ---------- */
+// Likes
 app.post('/api/like/:subject', (req, res) => {
   const s = req.params.subject;
-  db.prepare(`INSERT INTO likes(subject,count) VALUES(?,1)
-    ON CONFLICT(subject) DO UPDATE SET count = count + 1`).run(s);
+  db.prepare(`
+    INSERT INTO likes(subject,count) VALUES(?,1)
+    ON CONFLICT(subject) DO UPDATE SET count = count + 1
+  `).run(s);
   const count = db.prepare(`SELECT count FROM likes WHERE subject=?`).get(s).count;
   res.json({ likes: count });
 });
 
-/* ---------- COMMENTS ---------- */
+// Comments
 app.get('/api/comments/:subject', (req, res) => {
   const rows = db.prepare(`
     SELECT name, message, created_at FROM comments WHERE subject=?
@@ -110,16 +118,127 @@ app.get('/api/comments/:subject', (req, res) => {
 
 app.post('/api/comments', (req, res) => {
   const { subject, name, message } = req.body;
-  if (!message || !message.trim()) return res.status(400).json({ error: 'Empty' });
-  db.prepare(`INSERT INTO comments(subject,name,message) VALUES(?,?,?)`)
-    .run(subject, (name || 'Guest').slice(0, 40), message.slice(0, 400));
+  if (!message || !message.trim()) return res.status(400).json({ error: 'Empty message' });
+  db.prepare(`INSERT INTO comments(subject,name,message) VALUES(?,?,?)`).run(
+    subject || '',
+    (name || 'Guest').slice(0, 40),
+    message.slice(0, 400)
+  );
   res.json({ ok: true });
 });
 
-/* ---------- SPA fallback ---------- */
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+/* ============================================================
+   ADMIN API
+   ============================================================ */
+
+function requireAdmin(req, res, next) {
+  const key = req.headers['x-admin-key'] || req.query.key;
+  if (key !== ADMIN_KEY) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
+// List questions
+app.get('/api/admin/questions', requireAdmin, (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+  const offset = (page - 1) * limit;
+  const subject = req.query.subject || '';
+  const search = req.query.q || '';
+
+  let where = '1=1';
+  const params = [];
+  if (subject) { where += ' AND subject = ?'; params.push(subject); }
+  if (search)  { where += ' AND question LIKE ?'; params.push(`%${search}%`); }
+
+  const rows = db.prepare(`
+    SELECT * FROM questions WHERE ${where}
+    ORDER BY subject, id LIMIT ? OFFSET ?
+  `).all(...params, limit, offset);
+
+  const total = db.prepare(`SELECT COUNT(*) c FROM questions WHERE ${where}`)
+    .get(...params).c;
+
+  res.json({ rows, total, page, limit });
 });
 
+// Add single question
+app.post('/api/admin/questions', requireAdmin, (req, res) => {
+  const { id, subject, question, optionA, optionB, optionC, optionD,
+          correct, year, image } = req.body;
+
+  if (!subject || !question || !optionA || !optionB || !optionC || !optionD) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const finalId = id || `${subject.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+  try {
+    db.prepare(`
+      INSERT INTO questions
+      (id, subject, question, optionA, optionB, optionC, optionD, correct, year, image)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(finalId, subject, question, optionA, optionB, optionC, optionD,
+           Number(correct) || 0, year || '', image || null);
+    res.json({ ok: true, id: finalId });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// Bulk upload
+app.post('/api/admin/bulk', requireAdmin, (req, res) => {
+  const items = req.body.questions;
+  if (!Array.isArray(items)) {
+    return res.status(400).json({ error: 'Expected { questions: [...] }' });
+  }
+
+  const insert = db.prepare(`
+    INSERT OR REPLACE INTO questions
+    (id, subject, question, optionA, optionB, optionC, optionD, correct, year, image)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const tx = db.transaction((list) => {
+    let ok = 0;
+    for (const q of list) {
+      try {
+        const finalId = q.id ||
+          `${(q.subject || 'q').toLowerCase().replace(/\s+/g, '-')}-${Date.now()}-${ok}`;
+        insert.run(
+          finalId, q.subject, q.question,
+          q.optionA, q.optionB, q.optionC, q.optionD,
+          Number(q.correct) || 0, q.year || '', q.image || null
+        );
+        ok++;
+      } catch (_) { /* skip bad rows */ }
+    }
+    return ok;
+  });
+
+  res.json({ ok: true, added: tx(items) });
+});
+
+// Update question
+app.put('/api/admin/questions/:id', requireAdmin, (req, res) => {
+  const { question, optionA, optionB, optionC, optionD, correct, year, image } = req.body;
+  const r = db.prepare(`
+    UPDATE questions SET question=?, optionA=?, optionB=?, optionC=?,
+      optionD=?, correct=?, year=?, image=? WHERE id=?
+  `).run(question, optionA, optionB, optionC, optionD,
+         Number(correct) || 0, year || '', image || null, req.params.id);
+  res.json({ ok: true, updated: r.changes });
+});
+
+// Delete question
+app.delete('/api/admin/questions/:id', requireAdmin, (req, res) => {
+  const r = db.prepare('DELETE FROM questions WHERE id = ?').run(req.params.id);
+  res.json({ ok: true, deleted: r.changes });
+});
+
+/* ============================================================
+   START
+   ============================================================ */
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 UTME LAB running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 SUCCESS ACADEMY — UTME LAB running at http://localhost:${PORT}`);
+});
