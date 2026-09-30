@@ -1,1 +1,2 @@
 # jamb-quiz-
+npm install
