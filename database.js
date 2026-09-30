@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS questions (
   optionB TEXT NOT NULL,
   optionC TEXT NOT NULL,
   optionD TEXT NOT NULL,
-  correct INTEGER NOT NULL,   -- 0..3
+  correct INTEGER NOT NULL,
   year TEXT,
   image TEXT
 );
