@@ -1,0 +1,6 @@
+node_modules/
+utme.db
+utme.db-shm
+utme.db-wal
+.env
+.DS_Store
