@@ -42,20 +42,46 @@ fetch('/api/subjects')
       wrap.innerHTML = '<p style="color:var(--muted)">No subjects loaded. Run <code>npm run seed</code> first.</p>';
       return;
     }
+
     wrap.innerHTML = list.map(s => `
       <div class="subject-card" data-subject="${s.subject}">
         <div class="icon"><i class="fa-solid ${subjectIcons[s.subject] || 'fa-book'}"></i></div>
         <h4>${s.subject}</h4>
         <span>${s.count} questions</span>
+        <button class="share-btn" data-subject="${s.subject}" title="Copy share link">
+          <i class="fas fa-link"></i>
+        </button>
       </div>
     `).join('');
 
     document.querySelectorAll('.subject-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const subject = card.dataset.subject;
-        window.__gate.openGate(subject);
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.share-btn')) return;
+        window.__gate.openGate(card.dataset.subject);
       });
     });
+
+    document.querySelectorAll('.share-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const subject = btn.dataset.subject;
+        const slug = subject.toLowerCase().replace(/\s+/g, '-');
+        const url = `${location.origin}/s/${slug}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          btn.innerHTML = '<i class="fas fa-check"></i>';
+          setTimeout(() => btn.innerHTML = '<i class="fas fa-link"></i>', 1500);
+        } catch {
+          prompt('Copy this link:', url);
+        }
+      });
+    });
+
+    const param = new URLSearchParams(location.search).get('subject');
+    if (param) {
+      const matched = list.find(s => s.subject.toLowerCase() === param.toLowerCase());
+      if (matched) window.__gate.openGate(matched.subject);
+    }
   })
   .catch(err => {
     document.getElementById('subjects').innerHTML =
