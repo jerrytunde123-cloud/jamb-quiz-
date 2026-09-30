@@ -53,7 +53,6 @@ function render() {
 
   document.getElementById('questionText').innerHTML = q.question;
 
-  // Image handling
   const imgBox = document.getElementById('questionImage');
   if (q.image) {
     imgBox.innerHTML = `<img src="${q.image}" alt="Question diagram" loading="lazy" onerror="this.parentElement.classList.add('hidden')">`;
@@ -108,11 +107,7 @@ async function submitQuiz() {
     const res = await fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        quizId: quiz.quizId,
-        answers,
-        timeTaken
-      })
+      body: JSON.stringify({ quizId: quiz.quizId, answers, timeTaken })
     });
     const result = await res.json();
 
@@ -120,14 +115,20 @@ async function submitQuiz() {
       `${result.score} / ${result.total}`;
 
     document.getElementById('resultTitle').textContent =
-      result.score >= 8 ? '🏆 Excellent!' :
-      result.score >= 5 ? '👍 Good effort!' : '📚 Keep practising!';
+      result.score >= 12 ? '🏆 Excellent!' :
+      result.score >= 8  ? '👍 Good effort!' : '📚 Keep practising!';
 
     document.getElementById('resultMsg').textContent =
       `You took ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s.`;
 
     document.getElementById('retakeBtn').href =
       `/quiz.html?subject=${encodeURIComponent(subject)}&t=${Date.now()}`;
+
+    const slug = subject.toLowerCase().replace(/\s+/g, '-');
+    const shareUrl = `${location.origin}/s/${slug}`;
+    const shareText = `I scored ${result.score}/${result.total} in ${subject} on UTME LAB! Try it:`;
+    document.getElementById('shareWaBtn').href =
+      `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
 
     document.getElementById('resultModal').classList.remove('hidden');
   } catch (e) {
