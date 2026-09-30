@@ -4,13 +4,16 @@
   const gateSkip = document.getElementById('gateSkip');
   const countdownEl = document.getElementById('countdown');
 
+  let timer = null;
+
   function openGate(subject) {
     gate.classList.remove('hidden');
     let seconds = 5;
     gateSkip.disabled = true;
     countdownEl.textContent = seconds;
 
-    const timer = setInterval(() => {
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
       seconds--;
       countdownEl.textContent = seconds;
       if (seconds <= 0) {
@@ -20,14 +23,14 @@
       }
     }, 1000);
 
-    gateBtn.onclick = () => {
-      // user clicked join (opened channel in new tab)
+    gateBtn.onclick = (e) => {
+      e.preventDefault();
+      window.open(gateBtn.href, '_blank');
       gateBtn.classList.add('done');
-      // allow them to proceed immediately
       setTimeout(() => {
         gate.classList.add('hidden');
         window.location.href = `/quiz.html?subject=${encodeURIComponent(subject)}`;
-      }, 800);
+      }, 700);
     };
 
     gateSkip.onclick = () => {
