@@ -18,18 +18,21 @@
     </div>
   </div>
   <nav class="socials">
-    <a href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t" target="_blank" class="wa">
+    <a href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t" target="_blank" rel="noopener" class="wa">
       <i class="fab fa-whatsapp"></i> Main Channel
     </a>
-    <a href="https://t.me/examgroupng" target="_blank" class="tg">
+    <a href="https://t.me/examgroupng" target="_blank" rel="noopener" class="tg">
       <i class="fab fa-telegram"></i> Telegram
+    </a>
+    <a href="/admin.html" class="admin-link" title="Admin Panel">
+      <i class="fas fa-user-shield"></i> Admin
     </a>
   </nav>
 </header>
 
 <section class="hero">
   <h2>Practice 1,000+ JAMB Past Questions</h2>
-  <p>10 questions · 5 minutes · Randomised every attempt</p>
+  <p>15 questions · 5 minutes · Randomised every attempt</p>
 </section>
 
 <main class="container">
@@ -37,26 +40,46 @@
   <div id="subjects" class="grid"></div>
 </main>
 
-<!-- WhatsApp Gate Modal -->
+<!-- 2-CHANNEL GATE MODAL -->
 <div id="gate" class="gate hidden">
   <div class="gate-card">
     <div class="gate-icon"><i class="fab fa-whatsapp"></i></div>
-    <h3>Join to Unlock Quiz</h3>
-    <p>You must join our WhatsApp channel before starting the quiz.</p>
-    <a id="gateBtn" href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t"
-       target="_blank" class="btn-wa">
-      <i class="fab fa-whatsapp"></i> Join Channel & Continue
+    <h3>Join Both Channels to Unlock</h3>
+    <p>You must join <strong>both</strong> WhatsApp channels before starting the quiz.</p>
+
+    <a id="ch1Btn" class="btn-wa" target="_blank" rel="noopener"
+       href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t">
+      <i class="fab fa-whatsapp"></i>
+      <span id="ch1Label">Join Main Channel</span>
+      <span id="ch1Timer" class="ch-timer"></span>
     </a>
-    <button id="gateSkip" class="btn-ghost" disabled>
-      Continue in <span id="countdown">5</span>s
+
+    <a id="ch2Btn" class="btn-wa" target="_blank" rel="noopener"
+       href="https://whatsapp.com/channel/0029VbDTOmB1t90jcv9gLf0q">
+      <i class="fab fa-whatsapp"></i>
+      <span id="ch2Label">JAMB UTME</span>
+      <span id="ch2Timer" class="ch-timer"></span>
+    </a>
+
+    <button id="continueBtn" class="continue-btn" disabled>
+      <i class="fas fa-lock"></i> Continue to Quiz
     </button>
+
     <p class="small">
-      Optional channels:
-      <a href="https://whatsapp.com/channel/0029VbDTOmB1t90jcv9gLf0q" target="_blank">WA Group</a> ·
-      <a href="https://t.me/examgroupng" target="_blank">Telegram</a>
+      Optional channel:
+      <a href="https://whatsapp.com/channel/0029VbCwT4KAojYzRNFvpT1h" target="_blank" rel="noopener">
+        2027 JAMBITES
+      </a>
     </p>
   </div>
 </div>
+
+<footer class="site-footer">
+  <p>© SUCCESS ACADEMY · UTME LAB</p>
+  <p>
+    <a href="/admin.html"><i class="fas fa-user-shield"></i> Admin Panel</a>
+  </p>
+</footer>
 
 <script src="/js/gate.js"></script>
 <script src="/js/app.js"></script>
