@@ -12,7 +12,7 @@
 <header class="quiz-header">
   <div class="brand-mini">UTME LAB</div>
   <div class="quiz-meta">
-    <span id="qCounter">Q 1 / 10</span>
+    <span id="qCounter">Q 1 / 15</span>
     <span id="timer" class="timer">05:00</span>
   </div>
 </header>
@@ -36,11 +36,17 @@
 <div id="resultModal" class="gate hidden">
   <div class="gate-card">
     <h3 id="resultTitle">Quiz Complete</h3>
-    <p id="resultScore" class="big-score">0 / 10</p>
+    <p id="resultScore" class="big-score">0 / 15</p>
     <p id="resultMsg"></p>
     <div class="modal-actions">
       <a id="retakeBtn" class="btn-primary" href="#">Retake</a>
       <a class="btn-ghost" href="/">Home</a>
+    </div>
+    <div class="share-block">
+      <p style="font-size:12px;color:var(--muted);margin-top:14px;margin-bottom:6px;">Challenge your friends</p>
+      <a id="shareWaBtn" class="btn-wa" target="_blank" rel="noopener">
+        <i class="fab fa-whatsapp"></i> Share on WhatsApp
+      </a>
     </div>
   </div>
 </div>
