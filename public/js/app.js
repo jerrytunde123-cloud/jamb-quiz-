@@ -1,4 +1,3 @@
-// public/js/app.js
 const subjectIcons = {
   "English Language": "fa-font",
   "Mathematics": "fa-calculator",
@@ -39,6 +38,10 @@ fetch('/api/subjects')
   .then(r => r.json())
   .then(list => {
     const wrap = document.getElementById('subjects');
+    if (!list.length) {
+      wrap.innerHTML = '<p style="color:var(--muted)">No subjects loaded. Run <code>npm run seed</code> first.</p>';
+      return;
+    }
     wrap.innerHTML = list.map(s => `
       <div class="subject-card" data-subject="${s.subject}">
         <div class="icon"><i class="fa-solid ${subjectIcons[s.subject] || 'fa-book'}"></i></div>
@@ -50,8 +53,12 @@ fetch('/api/subjects')
     document.querySelectorAll('.subject-card').forEach(card => {
       card.addEventListener('click', () => {
         const subject = card.dataset.subject;
-        window.__pendingSubject = subject;
         window.__gate.openGate(subject);
       });
     });
+  })
+  .catch(err => {
+    document.getElementById('subjects').innerHTML =
+      '<p style="color:var(--danger)">Failed to load subjects. Is the server running?</p>';
+    console.error(err);
   });
