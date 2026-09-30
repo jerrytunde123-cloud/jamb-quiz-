@@ -197,3 +197,97 @@ body {
   .quiz-header { padding: 12px 16px; }
   .question-box { padding: 20px; }
 }
+
+/* Per-channel timer badge */
+.ch-timer {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: center;
+  display: none;
+}
+.ch-timer.done { background: #16a34a; color: white; }
+.btn-wa.done { background: #128C7E; }
+
+/* Continue button */
+.continue-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: not-allowed;
+  font-weight: 600;
+  font-size: 14px;
+  opacity: 0.5;
+  transition: 0.3s;
+  margin-top: 4px;
+  background: #30363d;
+  color: var(--text);
+}
+.continue-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.continue-btn.unlocked {
+  opacity: 1;
+  cursor: pointer;
+  background: var(--gradient);
+  color: #000;
+  animation: pulse 1.6s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Admin link in topbar */
+.socials .admin-link {
+  background: #30363d;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-size: 13px;
+  text-decoration: none;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.socials .admin-link:hover { background: var(--primary); color: #000; }
+
+/* Subject card share button */
+.subject-card { position: relative; }
+.share-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(245, 166, 35, 0.15);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+}
+.share-btn:hover { background: var(--primary); color: #000; }
+
+/* Footer */
+.site-footer {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+}
+.site-footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+/* Share block in result modal */
+.share-block { margin-top: 10px; }
