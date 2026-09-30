@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiz — UTME LAB</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="quiz-body">
+
+<header class="quiz-header">
+  <div class="brand-mini">UTME LAB</div>
+  <div class="quiz-meta">
+    <span id="qCounter">Q 1 / 10</span>
+    <span id="timer" class="timer">05:00</span>
+  </div>
+</header>
+
+<div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+
+<main class="quiz-container">
+  <div id="questionBox" class="question-box">
+    <p id="questionText" class="q-text">Loading…</p>
+    <div id="options" class="options"></div>
+  </div>
+
+  <div class="quiz-controls">
+    <button id="prevBtn" class="btn-ghost">Previous</button>
+    <button id="nextBtn" class="btn-primary">Next</button>
+    <button id="submitBtn" class="btn-success hidden">Submit</button>
+  </div>
+</main>
+
+<!-- Result modal -->
+<div id="resultModal" class="gate hidden">
+  <div class="gate-card">
+    <h3 id="resultTitle">Quiz Complete</h3>
+    <p id="resultScore" class="big-score">0 / 10</p>
+    <p id="resultMsg"></p>
+    <div class="modal-actions">
+      <a id="retakeBtn" class="btn-primary" href="#">Retake</a>
+      <a class="btn-ghost" href="/">Home</a>
+    </div>
+  </div>
+</div>
+
+<script src="/js/quiz.js"></script>
+</body>
+</html>
