@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Success Academy — UTME LAB</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">SA</div>
+    <div>
+      <h1>SUCCESS ACADEMY</h1>
+      <span>UTME LAB · JAMB/WAEC Practice</span>
+    </div>
+  </div>
+  <nav class="socials">
+    <a href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t" target="_blank" class="wa"><i class="fab fa-whatsapp"></i> Main Channel</a>
+    <a href="https://t.me/examgroupng" target="_blank" class="tg"><i class="fab fa-telegram"></i> Telegram</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h2>Practice 1000+ JAMB Past Questions</h2>
+  <p>10 questions · 5 minutes · Randomised every attempt</p>
+</section>
+
+<main class="container">
+  <h3 class="section-title">Pick a Subject</h3>
+  <div id="subjects" class="grid"></div>
+</main>
+
+<!-- WhatsApp Gate Modal (compulsory) -->
+<div id="gate" class="gate hidden">
+  <div class="gate-card">
+    <div class="gate-icon"><i class="fab fa-whatsapp"></i></div>
+    <h3>Join to Unlock Quiz</h3>
+    <p>You must join our WhatsApp channel before starting the quiz.</p>
+    <a id="gateBtn" href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t" target="_blank" class="btn-wa">
+      <i class="fab fa-whatsapp"></i> Join Channel & Continue
+    </a>
+    <button id="gateSkip" class="btn-ghost" disabled>Continue in <span id="countdown">5</span>s</button>
+    <p class="small">Optional channels:
+      <a href="https://whatsapp.com/channel/0029VbDTOmB1t90jcv9gLf0q" target="_blank">WA Group</a> ·
+      <a href="https://t.me/examgroupng" target="_blank">Telegram</a>
+    </p>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/gate.js"></script>
+</body>
+</html>
