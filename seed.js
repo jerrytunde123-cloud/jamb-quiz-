@@ -1,7 +1,11 @@
 const fs = require('fs');
+const path = require('path');
 const db = require('./database');
 
-const bank = JSON.parse(fs.readFileSync('./question-bank.json', 'utf8'));
+const BANK_PATH = path.join(__dirname, 'question-bank.json');
+const bank = JSON.parse(fs.readFileSync(BANK_PATH, 'utf8'));
+
+db.prepare('DELETE FROM questions').run();
 
 const insert = db.prepare(`
   INSERT OR REPLACE INTO questions
@@ -9,28 +13,68 @@ const insert = db.prepare(`
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
+const insertMany = db.transaction((items) => {
+  let n = 0;
+  for (const item of items) {
+    try {
+      insert.run(
+        item.id, item.subject, item.question,
+        item.optionA, item.optionB, item.optionC, item.optionD,
+        item.correct, item.year, item.image
+      );
+      n++;
+    } catch (e) {
+      console.warn(`⚠️  Skipped ${item.id}:`, e.message);
+    }
+  }
+  return n;
+});
+
 let total = 0;
+const all = [];
+
 for (const key in bank) {
   const subject = bank[key].name;
   for (const q of bank[key].questions) {
-    let opts = q.options.slice(0, 4);
+    // Trim to 4 options (JAMB standard A–D)
+    let opts = (q.options || []).slice(0, 4);
     while (opts.length < 4) opts.push('—');
 
-    // Remap correct index if it pointed beyond 3
+    // Remap correct index safely
     let correct = q.correct;
-    if (correct > 3) correct = 0; // fallback safety
+    if (typeof correct !== 'number' || correct < 0 || correct > 3) correct = 0;
 
-    insert.run(
-      q.id,
+    // Clean question text of underline HTML tags
+    const cleanQ = String(q.question)
+      .replace(/<u>/g, '').replace(/<\/u>/g, '')
+      .replace(/\r/g, '')
+      .trim();
+
+    // Normalize image path to "/images/xxx.jpg"
+    let img = null;
+    if (q.image) {
+      const base = path.basename(q.image);
+      img = `/images/${base}`;
+    }
+
+    all.push({
+      id: q.id || `${subject.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}-${total}`,
       subject,
-      q.question.replace(/<u>/g, '').replace(/<\/u>/g, ''), // strip underline tags
-      opts[0], opts[1], opts[2], opts[3],
+      question: cleanQ,
+      optionA: opts[0], optionB: opts[1], optionC: opts[2], optionD: opts[3],
       correct,
-      q.year || '',
-      q.image || null
-    );
+      year: q.year || '',
+      image: img
+    });
     total++;
   }
 }
-console.log(`✅ Seeded ${total} questions.`);
-console.log('Subjects:', Object.values(bank).map(s => s.name).join(', '));
+
+const added = insertMany(all);
+console.log(`✅ Seeded ${added} / ${total} questions`);
+
+const subjects = db.prepare(`
+  SELECT subject, COUNT(*) c FROM questions GROUP BY subject ORDER BY subject
+`).all();
+console.log('\n📚 Subjects loaded:');
+subjects.forEach(s => console.log(`   • ${s.subject} — ${s.c} questions`));
