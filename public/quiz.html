@@ -12,6 +12,7 @@
 <header class="quiz-header">
   <div class="brand-mini">UTME LAB</div>
   <div class="quiz-meta">
+    <span id="nicknameBadge"></span>
     <span id="qCounter">Q 1 / 15</span>
     <span id="timer" class="timer">05:00</span>
   </div>
@@ -33,20 +34,46 @@
   </div>
 </main>
 
+<!-- RESULT MODAL -->
 <div id="resultModal" class="gate hidden">
-  <div class="gate-card">
+  <div class="gate-card wide">
     <h3 id="resultTitle">Quiz Complete</h3>
     <p id="resultScore" class="big-score">0 / 15</p>
     <p id="resultMsg"></p>
+    <p id="personalBest" class="best-line"></p>
+
     <div class="modal-actions">
       <a id="retakeBtn" class="btn-primary" href="#">Retake</a>
       <a class="btn-ghost" href="/">Home</a>
     </div>
+
     <div class="share-block">
-      <p style="font-size:12px;color:var(--muted);margin-top:14px;margin-bottom:6px;">Challenge your friends</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:14px;margin-bottom:6px;">
+        Challenge your friends
+      </p>
       <a id="shareWaBtn" class="btn-wa" target="_blank" rel="noopener">
         <i class="fab fa-whatsapp"></i> Share on WhatsApp
       </a>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="tabs-mini">
+      <button class="active" data-pane="lb">🏆 Leaderboard</button>
+      <button data-pane="cm">💬 Comments</button>
+    </div>
+
+    <div id="pane-lb" class="mini-pane">
+      <div id="leaderboard" class="leaderboard">Loading…</div>
+    </div>
+
+    <div id="pane-cm" class="mini-pane hidden">
+      <div id="commentList" class="comment-list"></div>
+      <div class="comment-form">
+        <input id="commentMsg" placeholder="Say something encouraging…" maxlength="200">
+        <button id="commentSend" class="btn-primary">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
     </div>
   </div>
 </div>
