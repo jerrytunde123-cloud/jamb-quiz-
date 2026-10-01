@@ -68,10 +68,30 @@
     gate.classList.remove('hidden');
   }
 
+  function handleWhatsAppDeepLink(e, httpsUrl) {
+    const match = httpsUrl.match(/whatsapp\.com\/channel\/([A-Za-z0-9]+)/);
+    if (!match) return;
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobile) return;
+
+    e.preventDefault();
+    const channelCode = match[1];
+    const deepLink = `whatsapp://channel/${channelCode}`;
+
+    const fallback = setTimeout(() => {
+      window.location.href = httpsUrl;
+    }, 1200);
+
+    window.location.href = deepLink;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) clearTimeout(fallback);
+    }, { once: true });
+  }
+
   ch1Btn.addEventListener('click', (e) => {
     startChannelTimer('ch1', ch1Timer);
     ch1Btn.classList.add('done');
-    // Deep link: try whatsapp:// first, fallback to web
     handleWhatsAppDeepLink(e, ch1Btn.href);
   });
   ch2Btn.addEventListener('click', (e) => {
@@ -80,31 +100,6 @@
     handleWhatsAppDeepLink(e, ch2Btn.href);
   });
 
-  // Convert https://whatsapp.com/channel/XXX → whatsapp://channel/XXX for mobile
-  function handleWhatsAppDeepLink(e, httpsUrl) {
-    const match = httpsUrl.match(/whatsapp\.com\/channel\/([A-Za-z0-9]+)/);
-    if (!match) return;
-
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (!isMobile) return; // Desktop → let browser handle
-
-    e.preventDefault();
-    const channelCode = match[1];
-    const deepLink = `whatsapp://channel/${channelCode}`;
-
-    // Try deep link, then fall back to https after 1.2s
-    const fallback = setTimeout(() => {
-      window.location.href = httpsUrl;
-    }, 1200);
-
-    window.location.href = deepLink;
-    // If app opened, clear fallback
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) clearTimeout(fallback);
-    }, { once: true });
-  }
-
-  // Continue → nickname prompt
   continueBtn.addEventListener('click', () => {
     if (continueBtn.disabled) return;
     gate.classList.add('hidden');
@@ -113,7 +108,6 @@
     setTimeout(() => nicknameInput.focus(), 100);
   });
 
-  // Nickname save → go to quiz
   nicknameSave.addEventListener('click', () => {
     const nick = nicknameInput.value.trim() || 'Anonymous';
     localStorage.setItem('nickname', nick);
