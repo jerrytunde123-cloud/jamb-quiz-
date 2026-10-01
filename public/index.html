@@ -17,17 +17,17 @@
       <span>UTME LAB · JAMB/WAEC Practice</span>
     </div>
   </div>
- <nav class="socials">
-  <a href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t" target="_blank" rel="noopener" class="wa">
-    <i class="fab fa-whatsapp"></i> Main Channel
-  </a>
-  <a href="https://t.me/examgroupng" target="_blank" rel="noopener" class="tg">
-    <i class="fab fa-telegram"></i> Telegram
-  </a>
-  <a href="https://t.me/Officialkingjay1" target="_blank" rel="noopener" class="contact-link">
-    <i class="fas fa-headset"></i> Contact
-  </a>
- </nav>
+  <nav class="socials">
+    <a href="https://whatsapp.com/channel/0029VbChP246LwHsgqriNd3t" target="_blank" rel="noopener" class="wa">
+      <i class="fab fa-whatsapp"></i> Main Channel
+    </a>
+    <a href="https://t.me/examgroupng" target="_blank" rel="noopener" class="tg">
+      <i class="fab fa-telegram"></i> Telegram
+    </a>
+    <a href="https://t.me/Officialkingjay1" target="_blank" rel="noopener" class="contact-link">
+      <i class="fas fa-headset"></i> Contact
+    </a>
+  </nav>
 </header>
 
 <section class="hero">
@@ -38,6 +38,28 @@
 <main class="container">
   <h3 class="section-title">Pick a Subject</h3>
   <div id="subjects" class="grid"></div>
+
+  <!-- JAMB EXAM ASSISTANCE PANEL -->
+  <section class="assistance-panel">
+    <div class="assist-header">
+      <i class="fas fa-graduation-cap"></i>
+      <h3>FOR FULL EXAM GUIDE, PREPARATIONS &amp; ASSISTANCE</h3>
+    </div>
+    <div class="assist-buttons">
+      <a href="https://t.me/Officialkingjay1" target="_blank" rel="noopener" class="assist-btn wa">
+        <i class="fab fa-whatsapp"></i> Chat on WhatsApp
+      </a>
+      <a href="https://t.me/Officialkingjay1" target="_blank" rel="noopener" class="assist-btn tg">
+        <i class="fab fa-telegram"></i> Chat on Telegram
+      </a>
+      <a href="https://utmelab.com" target="_blank" rel="noopener" class="assist-btn site">
+        <i class="fas fa-globe"></i> Visit utmelab.com
+      </a>
+      <a href="https://jamb-lab.vercel.app" target="_blank" rel="noopener" class="assist-btn site-alt">
+        <i class="fas fa-laptop"></i> JAMB Practice (Vercel)
+      </a>
+    </div>
+  </section>
 </main>
 
 <!-- 2-CHANNEL GATE MODAL -->
@@ -74,10 +96,29 @@
   </div>
 </div>
 
+<!-- NICKNAME PROMPT MODAL -->
+<div id="nicknameModal" class="gate hidden">
+  <div class="gate-card">
+    <h3>Enter Your Nickname</h3>
+    <p>This will appear on the leaderboard.</p>
+    <input id="nicknameInput" type="text" maxlength="20" placeholder="e.g. Scholar01"
+           style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:#0d1117;color:var(--text);font-size:15px;text-align:center;margin-bottom:14px;">
+    <button id="nicknameSave" class="btn-primary" style="width:100%;">
+      Start Quiz <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</div>
+
 <footer class="site-footer">
   <p>© SUCCESS ACADEMY · UTME LAB</p>
   <p>
-    <a href="/admin.html"><i class="fas fa-user-shield"></i> Admin Panel</a>
+    <a href="https://t.me/Officialkingjay1" target="_blank" rel="noopener">
+      <i class="fab fa-telegram"></i> Contact Admin
+    </a>
+    ·
+    <a href="https://utmelab.com" target="_blank" rel="noopener">
+      <i class="fas fa-globe"></i> utmelab.com
+    </a>
   </p>
 </footer>
 
