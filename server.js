@@ -249,7 +249,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 SUCCESS ACADEMY — UTME LAB running at http://localhost:${PORT}`);
 });require('dotenv').config();
-const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const db = require('./database');
