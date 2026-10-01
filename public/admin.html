@@ -3,10 +3,42 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Admin — UTME LAB</title>
+<title>ADMIN · UTME LAB</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/css/style.css" />
 <style>
+  body { background: #0d1117; }
+  .login-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    display: grid; place-items: center;
+    background: #0d1117;
+  }
+  .login-screen.hidden { display: none; }
+  .login-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; padding: 34px; max-width: 380px; width: 90%;
+    text-align: center;
+  }
+  .login-card .lock-icon {
+    width: 60px; height: 60px; margin: 0 auto 16px;
+    border-radius: 50%; background: var(--gradient); color: #000;
+    display: grid; place-items: center; font-size: 24px;
+  }
+  .login-card h2 { margin-bottom: 8px; }
+  .login-card p { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .login-card input {
+    width: 100%; padding: 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: #0d1117; color: var(--text);
+    font-size: 15px; text-align: center; margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .login-card button {
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    background: var(--gradient); color: #000; font-weight: 700;
+    cursor: pointer; font-size: 14px;
+  }
+  .login-error { color: var(--danger); font-size: 13px; min-height: 20px; margin-bottom: 8px; }
+
   .admin-wrap { max-width: 1100px; margin: 30px auto; padding: 20px; }
   .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .admin-tabs button {
@@ -70,125 +102,194 @@
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <div class="logo">SA</div>
-    <div><h1>ADMIN PANEL</h1><span>UTME LAB · Exclusive Access</span></div>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="lock-icon"><i class="fas fa-lock"></i></div>
+    <h2>Admin Access</h2>
+    <p>Enter your admin key to continue</p>
+    <div id="loginError" class="login-error"></div>
+    <input id="loginInput" type="password" placeholder="Admin key" autocomplete="off">
+    <button id="loginBtn">Unlock Panel</button>
   </div>
-  <a href="/" class="btn-ghost" style="width:auto;text-decoration:none;padding:8px 16px;margin:0;">← Home</a>
-</header>
+</div>
 
-<div class="admin-wrap">
-  <div class="admin-tabs">
-    <button data-tab="stats" class="active">📊 Dashboard</button>
-    <button data-tab="add">➕ Add Question</button>
-    <button data-tab="bulk">📤 Bulk Upload</button>
-    <button data-tab="list">📋 Manage Questions</button>
-    <button data-tab="links">🔗 Share Links</button>
-  </div>
+<!-- ADMIN UI (hidden until auth) -->
+<div id="adminUI" style="display:none;">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">SA</div>
+      <div><h1>ADMIN PANEL</h1><span>UTME LAB · Exclusive Access</span></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <a href="/" class="btn-ghost" style="width:auto;text-decoration:none;padding:8px 16px;margin:0;">← Home</a>
+      <button id="logoutBtn" class="btn-ghost" style="width:auto;padding:8px 16px;margin:0;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </header>
 
-  <!-- STATS -->
-  <div class="admin-panel" id="tab-stats">
-    <h3 style="margin-bottom:14px;">Statistics Dashboard</h3>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="num" id="stat-total">—</div><div class="label">Total Questions</div></div>
-      <div class="stat-card"><div class="num" id="stat-subjects">—</div><div class="label">Subjects</div></div>
-      <div class="stat-card"><div class="num" id="stat-attempts">—</div><div class="label">Total Attempts</div></div>
-      <div class="stat-card"><div class="num" id="stat-likes">—</div><div class="label">Total Likes</div></div>
+  <div class="admin-wrap">
+    <div class="admin-tabs">
+      <button data-tab="stats" class="active">📊 Dashboard</button>
+      <button data-tab="add">➕ Add Question</button>
+      <button data-tab="bulk">📤 Bulk Upload</button>
+      <button data-tab="list">📋 Manage Questions</button>
+      <button data-tab="links">🔗 Share Links</button>
     </div>
-    <h4 style="margin:20px 0 10px;">Questions per Subject</h4>
-    <div id="stat-breakdown" style="font-size:13px; color:var(--muted);">Loading…</div>
-  </div>
 
-  <!-- ADD -->
-  <div class="admin-panel hidden" id="tab-add">
-    <h3 style="margin-bottom:14px;">Add New Question</h3>
-    <div class="form-row">
-      <div><label>Subject</label><input id="f-subject" placeholder="e.g. Mathematics"></div>
-      <div><label>Year (optional)</label><input id="f-year" placeholder="JAMB 2023"></div>
-    </div>
-    <div class="form-row full">
-      <div><label>Question</label><textarea id="f-question" placeholder="Enter question text…"></textarea></div>
-    </div>
-    <div class="form-row">
-      <div><label>Option A</label><input id="f-a"></div>
-      <div><label>Option B</label><input id="f-b"></div>
-    </div>
-    <div class="form-row">
-      <div><label>Option C</label><input id="f-c"></div>
-      <div><label>Option D</label><input id="f-d"></div>
-    </div>
-    <div class="form-row">
-      <div>
-        <label>Correct Answer</label>
-        <select id="f-correct">
-          <option value="0">A</option><option value="1">B</option>
-          <option value="2">C</option><option value="3">D</option>
-        </select>
+    <!-- STATS -->
+    <div class="admin-panel" id="tab-stats">
+      <h3 style="margin-bottom:14px;">Statistics Dashboard</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num" id="stat-total">—</div><div class="label">Total Questions</div></div>
+        <div class="stat-card"><div class="num" id="stat-subjects">—</div><div class="label">Subjects</div></div>
+        <div class="stat-card"><div class="num" id="stat-attempts">—</div><div class="label">Total Attempts</div></div>
+        <div class="stat-card"><div class="num" id="stat-likes">—</div><div class="label">Total Likes</div></div>
       </div>
-      <div><label>Image path (optional)</label><input id="f-image" placeholder="/images/xxx.jpg"></div>
+      <h4 style="margin:20px 0 10px;">Questions per Subject</h4>
+      <div id="stat-breakdown" style="font-size:13px; color:var(--muted);">Loading…</div>
     </div>
-    <button class="btn-primary" id="btnSave" style="margin-top:10px;">Save Question</button>
-  </div>
 
-  <!-- BULK -->
-  <div class="admin-panel hidden" id="tab-bulk">
-    <h3 style="margin-bottom:14px;">Bulk Upload</h3>
-    <p style="color:var(--muted); font-size:14px; margin-bottom:14px;">
-      Paste a JSON array of questions.
-    </p>
-    <div class="form-row full">
-      <div>
-        <label>JSON Payload</label>
-        <textarea id="bulk-json" style="min-height:300px;font-family:monospace;" placeholder='[{"subject":"Mathematics","question":"2+2?","optionA":"3","optionB":"4","optionC":"5","optionD":"6","correct":1}]'></textarea>
+    <!-- ADD -->
+    <div class="admin-panel hidden" id="tab-add">
+      <h3 style="margin-bottom:14px;">Add New Question</h3>
+      <div class="form-row">
+        <div><label>Subject</label><input id="f-subject" placeholder="e.g. Mathematics"></div>
+        <div><label>Year (optional)</label><input id="f-year" placeholder="JAMB 2023"></div>
+      </div>
+      <div class="form-row full">
+        <div><label>Question</label><textarea id="f-question" placeholder="Enter question text…"></textarea></div>
+      </div>
+      <div class="form-row">
+        <div><label>Option A</label><input id="f-a"></div>
+        <div><label>Option B</label><input id="f-b"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Option C</label><input id="f-c"></div>
+        <div><label>Option D</label><input id="f-d"></div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Correct Answer</label>
+          <select id="f-correct">
+            <option value="0">A</option><option value="1">B</option>
+            <option value="2">C</option><option value="3">D</option>
+          </select>
+        </div>
+        <div><label>Image path (optional)</label><input id="f-image" placeholder="/images/xxx.jpg"></div>
+      </div>
+      <button class="btn-primary" id="btnSave" style="margin-top:10px;">Save Question</button>
+    </div>
+
+    <!-- BULK -->
+    <div class="admin-panel hidden" id="tab-bulk">
+      <h3 style="margin-bottom:14px;">Bulk Upload</h3>
+      <p style="color:var(--muted); font-size:14px; margin-bottom:14px;">
+        Paste a JSON array of questions.
+      </p>
+      <div class="form-row full">
+        <div>
+          <label>JSON Payload</label>
+          <textarea id="bulk-json" style="min-height:300px;font-family:monospace;" placeholder='[{"subject":"Mathematics","question":"2+2?","optionA":"3","optionB":"4","optionC":"5","optionD":"6","correct":1}]'></textarea>
+        </div>
+      </div>
+      <button class="btn-primary" id="btnBulk">Upload All</button>
+    </div>
+
+    <!-- LIST -->
+    <div class="admin-panel hidden" id="tab-list">
+      <h3 style="margin-bottom:14px;">Manage Questions</h3>
+      <div class="search-bar">
+        <input id="search-q" placeholder="Search question text…">
+        <select id="search-subject"><option value="">All Subjects</option></select>
+        <button class="btn-primary" id="btnSearch">Search</button>
+      </div>
+      <div id="listStatus" style="color:var(--muted); font-size:13px; margin-bottom:10px;"></div>
+      <div style="max-height:520px; overflow-y:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr><th>ID</th><th>Subject</th><th>Question</th><th>Ans</th><th></th></tr>
+          </thead>
+          <tbody id="listBody"></tbody>
+        </table>
       </div>
     </div>
-    <button class="btn-primary" id="btnBulk">Upload All</button>
-  </div>
 
-  <!-- LIST -->
-  <div class="admin-panel hidden" id="tab-list">
-    <h3 style="margin-bottom:14px;">Manage Questions</h3>
-    <div class="search-bar">
-      <input id="search-q" placeholder="Search question text…">
-      <select id="search-subject"><option value="">All Subjects</option></select>
-      <button class="btn-primary" id="btnSearch">Search</button>
+    <!-- LINKS -->
+    <div class="admin-panel hidden" id="tab-links">
+      <h3 style="margin-bottom:14px;">Subject Share Links</h3>
+      <p style="color:var(--muted); font-size:14px; margin-bottom:14px;">
+        Copy any link below — share it on WhatsApp. Recipients must join both channels
+        before their quiz unlocks.
+      </p>
+      <div class="search-bar">
+        <input id="link-search" placeholder="Filter subjects…">
+      </div>
+      <div id="link-list" style="display:grid;gap:10px;"></div>
     </div>
-    <div id="listStatus" style="color:var(--muted); font-size:13px; margin-bottom:10px;"></div>
-    <div style="max-height:520px; overflow-y:auto;">
-      <table class="admin-table">
-        <thead>
-          <tr><th>ID</th><th>Subject</th><th>Question</th><th>Ans</th><th></th></tr>
-        </thead>
-        <tbody id="listBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- LINKS -->
-  <div class="admin-panel hidden" id="tab-links">
-    <h3 style="margin-bottom:14px;">Subject Share Links</h3>
-    <p style="color:var(--muted); font-size:14px; margin-bottom:14px;">
-      Copy any link below — share it on WhatsApp. Recipients must join both channels
-      before their quiz unlocks.
-    </p>
-    <div class="search-bar">
-      <input id="link-search" placeholder="Filter subjects…">
-    </div>
-    <div id="link-list" style="display:grid;gap:10px;"></div>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
 <script>
-const KEY = prompt('Enter admin key:') || localStorage.getItem('adminKey');
-if (!KEY) { alert('Admin key required'); location.href = '/'; }
-localStorage.setItem('adminKey', KEY);
-const headers = { 'Content-Type': 'application/json', 'x-admin-key': KEY };
+/* ==========================================================
+   AUTH — verify with server before showing UI
+   ========================================================== */
+let ADMIN_KEY = sessionStorage.getItem('adminKey') || '';
 
-const f = id => document.getElementById(id).value.trim();
+const loginScreen = document.getElementById('loginScreen');
+const adminUI = document.getElementById('adminUI');
+const loginInput = document.getElementById('loginInput');
+const loginBtn = document.getElementById('loginBtn');
+const loginError = document.getElementById('loginError');
 
+function getHeaders() {
+  return { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY };
+}
+
+async function verifyKey(key) {
+  try {
+    const r = await fetch('/api/admin/questions?limit=1', {
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': key }
+    });
+    if (r.status === 401) return false;
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function tryLogin(key) {
+  loginError.textContent = '';
+  const ok = await verifyKey(key);
+  if (!ok) {
+    loginError.textContent = '❌ Invalid admin key';
+    sessionStorage.removeItem('adminKey');
+    return false;
+  }
+  ADMIN_KEY = key;
+  sessionStorage.setItem('adminKey', key);
+  loginScreen.classList.add('hidden');
+  adminUI.style.display = 'block';
+  initAdmin();
+  return true;
+}
+
+loginBtn.addEventListener('click', () => tryLogin(loginInput.value.trim()));
+loginInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') loginBtn.click();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('adminKey');
+  location.reload();
+});
+
+/* ==========================================================
+   ADMIN LOGIC
+   ========================================================== */
 function toast(msg, isError = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -196,20 +297,72 @@ function toast(msg, isError = false) {
   setTimeout(() => t.className = 'toast', 2500);
 }
 
-// Tabs
-document.querySelectorAll('.admin-tabs button').forEach(b => {
-  b.onclick = () => {
-    document.querySelectorAll('.admin-tabs button').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    ['stats','add','bulk','list','links'].forEach(t =>
-      document.getElementById('tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
-    if (b.dataset.tab === 'list') loadList();
-    if (b.dataset.tab === 'links') loadLinks();
-    if (b.dataset.tab === 'stats') loadStats();
-  };
-});
+const f = id => document.getElementById(id).value.trim();
 
-// Dashboard
+function initAdmin() {
+  // Tabs
+  document.querySelectorAll('.admin-tabs button').forEach(b => {
+    b.onclick = () => {
+      document.querySelectorAll('.admin-tabs button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      ['stats','add','bulk','list','links'].forEach(t =>
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== b.dataset.tab));
+      if (b.dataset.tab === 'list') loadList();
+      if (b.dataset.tab === 'links') loadLinks();
+      if (b.dataset.tab === 'stats') loadStats();
+    };
+  });
+
+  // Add
+  document.getElementById('btnSave').onclick = async () => {
+    const body = {
+      subject: f('f-subject'),
+      year: f('f-year'),
+      question: f('f-question'),
+      optionA: f('f-a'), optionB: f('f-b'),
+      optionC: f('f-c'), optionD: f('f-d'),
+      correct: parseInt(f('f-correct')),
+      image: f('f-image') || null
+    };
+    const r = await fetch('/api/admin/questions', {
+      method: 'POST', headers: getHeaders(), body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (d.ok) {
+      toast('✅ Question added');
+      ['f-question','f-a','f-b','f-c','f-d'].forEach(id =>
+        document.getElementById(id).value = '');
+    } else {
+      toast('❌ ' + (d.error || 'Failed'), true);
+    }
+  };
+
+  // Bulk
+  document.getElementById('btnBulk').onclick = async () => {
+    let arr;
+    try { arr = JSON.parse(document.getElementById('bulk-json').value); }
+    catch { return toast('❌ Invalid JSON', true); }
+    const r = await fetch('/api/admin/bulk', {
+      method: 'POST', headers: getHeaders(), body: JSON.stringify({ questions: arr })
+    });
+    const d = await r.json();
+    if (d.ok) toast(`✅ Uploaded ${d.added} questions`);
+    else toast('❌ ' + d.error, true);
+  };
+
+  document.getElementById('btnSearch').onclick = loadList;
+  document.getElementById('link-search').addEventListener('input', loadLinks);
+
+  // Subjects dropdown
+  fetch('/api/subjects').then(r => r.json()).then(list => {
+    document.getElementById('search-subject').innerHTML =
+      '<option value="">All Subjects</option>' +
+      list.map(s => `<option>${s.subject}</option>`).join('');
+  });
+
+  loadStats();
+}
+
 async function loadStats() {
   try {
     const r = await fetch('/api/subjects');
@@ -219,7 +372,6 @@ async function loadStats() {
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-subjects').textContent = list.length;
 
-    // Attempts + likes from all subjects (approx by summing)
     let totalAttempts = 0, totalLikes = 0;
     for (const s of list) {
       const sr = await fetch(`/api/stats/${encodeURIComponent(s.subject)}`);
@@ -235,56 +387,18 @@ async function loadStats() {
         <span>${s.subject}</span><span style="color:var(--primary);font-weight:700;">${s.count}</span>
       </div>`
     ).join('');
-  } catch (e) {
+  } catch {
     toast('Failed to load stats', true);
   }
 }
 
-// Add
-document.getElementById('btnSave').onclick = async () => {
-  const body = {
-    subject: f('f-subject'),
-    year: f('f-year'),
-    question: f('f-question'),
-    optionA: f('f-a'), optionB: f('f-b'),
-    optionC: f('f-c'), optionD: f('f-d'),
-    correct: parseInt(f('f-correct')),
-    image: f('f-image') || null
-  };
-  const r = await fetch('/api/admin/questions', {
-    method: 'POST', headers, body: JSON.stringify(body)
-  });
-  const d = await r.json();
-  if (d.ok) {
-    toast('✅ Question added');
-    ['f-question','f-a','f-b','f-c','f-d'].forEach(id =>
-      document.getElementById(id).value = '');
-  } else {
-    toast('❌ ' + (d.error || 'Failed'), true);
-  }
-};
-
-// Bulk
-document.getElementById('btnBulk').onclick = async () => {
-  let arr;
-  try { arr = JSON.parse(document.getElementById('bulk-json').value); }
-  catch { return toast('❌ Invalid JSON', true); }
-  const r = await fetch('/api/admin/bulk', {
-    method: 'POST', headers, body: JSON.stringify({ questions: arr })
-  });
-  const d = await r.json();
-  if (d.ok) toast(`✅ Uploaded ${d.added} questions`);
-  else toast('❌ ' + d.error, true);
-};
-
-// List
 async function loadList() {
   const params = new URLSearchParams({
     q: document.getElementById('search-q').value,
     subject: document.getElementById('search-subject').value,
     limit: 100
   });
-  const r = await fetch('/api/admin/questions?' + params, { headers });
+  const r = await fetch('/api/admin/questions?' + params, { headers: getHeaders() });
   const d = await r.json();
   if (!d.rows) return toast('❌ Auth failed', true);
 
@@ -305,14 +419,13 @@ async function loadList() {
 
 window.delQ = async (id) => {
   if (!confirm('Delete this question?')) return;
-  const r = await fetch('/api/admin/questions/' + id, { method: 'DELETE', headers });
+  const r = await fetch('/api/admin/questions/' + id, {
+    method: 'DELETE', headers: getHeaders()
+  });
   const d = await r.json();
   if (d.ok) { toast('🗑️ Deleted'); loadList(); }
 };
 
-document.getElementById('btnSearch').onclick = loadList;
-
-// Share links
 async function loadLinks() {
   const res = await fetch('/api/subjects');
   const list = await res.json();
@@ -342,17 +455,22 @@ async function loadLinks() {
   }).join('');
 }
 
-document.getElementById('link-search').addEventListener('input', loadLinks);
-
-// Load subjects dropdown
-fetch('/api/subjects').then(r => r.json()).then(list => {
-  document.getElementById('search-subject').innerHTML =
-    '<option value="">All Subjects</option>' +
-    list.map(s => `<option>${s.subject}</option>`).join('');
-});
-
-// Init dashboard on load
-loadStats();
+/* ==========================================================
+   INIT — if key exists in session, verify then show
+   ========================================================== */
+(async () => {
+  if (ADMIN_KEY) {
+    const ok = await verifyKey(ADMIN_KEY);
+    if (ok) {
+      loginScreen.classList.add('hidden');
+      adminUI.style.display = 'block';
+      initAdmin();
+    } else {
+      sessionStorage.removeItem('adminKey');
+      ADMIN_KEY = '';
+    }
+  }
+})();
 </script>
 </body>
 </html>
