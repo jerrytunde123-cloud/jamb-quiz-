@@ -46,7 +46,7 @@ fetch('/api/subjects')
     wrap.innerHTML = list.map(s => {
       const best = localStorage.getItem('best_' + s.subject);
       const bestBadge = best
-        ? `<div class="best-badge"><i class="fas fa-trophy"></i> ${best}</div>`
+        ? `<div class="best-badge"><i class="fas fa-trophy"></i> ${best}%</div>`
         : '';
       return `
         <div class="subject-card" data-subject="${s.subject}">
@@ -63,6 +63,10 @@ fetch('/api/subjects')
     document.querySelectorAll('.subject-card').forEach(card => {
       card.addEventListener('click', (e) => {
         if (e.target.closest('.share-btn')) return;
+        if (!window.__gate || !window.__gate.openGate) {
+          alert('Quiz loader not ready. Please refresh the page.');
+          return;
+        }
         window.__gate.openGate(card.dataset.subject);
       });
     });
@@ -86,7 +90,7 @@ fetch('/api/subjects')
     const param = new URLSearchParams(location.search).get('subject');
     if (param) {
       const matched = list.find(s => s.subject.toLowerCase() === param.toLowerCase());
-      if (matched) window.__gate.openGate(matched.subject);
+      if (matched && window.__gate) window.__gate.openGate(matched.subject);
     }
   })
   .catch(err => {
