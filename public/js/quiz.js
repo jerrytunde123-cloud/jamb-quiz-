@@ -6,8 +6,11 @@ let quiz = null;
 let current = 0;
 let answers = {};
 let startTime = Date.now();
-let timeLeft = 300; // 5 minutes
+let timeLeft = 300;
 let timerInterval = null;
+
+const nickname = localStorage.getItem('nickname') || 'Anonymous';
+document.getElementById('nicknameBadge').textContent = `👤 ${nickname}`;
 
 async function loadQuiz() {
   if (!subject) {
@@ -92,11 +95,9 @@ function render() {
 document.getElementById('prevBtn').onclick = () => {
   if (current > 0) { current--; render(); }
 };
-
 document.getElementById('nextBtn').onclick = () => {
   if (current < quiz.questions.length - 1) { current++; render(); }
 };
-
 document.getElementById('submitBtn').onclick = submitQuiz;
 
 async function submitQuiz() {
@@ -107,7 +108,7 @@ async function submitQuiz() {
     const res = await fetch('/api/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quizId: quiz.quizId, answers, timeTaken })
+      body: JSON.stringify({ quizId: quiz.quizId, answers, timeTaken, nickname })
     });
     const result = await res.json();
 
@@ -121,6 +122,18 @@ async function submitQuiz() {
     document.getElementById('resultMsg').textContent =
       `You took ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s.`;
 
+    // Personal best
+    const key = 'best_' + subject;
+    const prevBest = parseInt(localStorage.getItem(key) || '0');
+    const pct = Math.round((result.score / result.total) * 100);
+    const bestEl = document.getElementById('personalBest');
+    if (pct > prevBest) {
+      localStorage.setItem(key, pct);
+      bestEl.innerHTML = `<i class="fas fa-trophy" style="color:#f5a623"></i> New personal best! ${pct}%`;
+    } else if (prevBest > 0) {
+      bestEl.innerHTML = `Personal best: ${prevBest}%`;
+    }
+
     document.getElementById('retakeBtn').href =
       `/quiz.html?subject=${encodeURIComponent(subject)}&t=${Date.now()}`;
 
@@ -131,10 +144,85 @@ async function submitQuiz() {
       `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
 
     document.getElementById('resultModal').classList.remove('hidden');
+
+    loadLeaderboard();
+    loadComments();
+    setupCommentForm();
+    setupTabs();
   } catch (e) {
     alert('Failed to submit quiz');
     console.error(e);
   }
+}
+
+async function loadLeaderboard() {
+  const el = document.getElementById('leaderboard');
+  try {
+    const r = await fetch(`/api/leaderboard/${encodeURIComponent(subject)}`);
+    const rows = await r.json();
+    if (!rows.length) {
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;">Be the first on the leaderboard!</p>';
+      return;
+    }
+    el.innerHTML = rows.map((r, i) => `
+      <div class="lb-row ${r.nickname === nickname ? 'me' : ''}">
+        <span class="lb-rank">${i + 1}</span>
+        <span class="lb-name">${r.nickname}</span>
+        <span class="lb-score">${r.score}/${r.total}</span>
+        <span class="lb-time">${Math.floor(r.time_taken/60)}m ${r.time_taken%60}s</span>
+      </div>
+    `).join('');
+  } catch {
+    el.innerHTML = '<p style="color:var(--danger)">Failed to load.</p>';
+  }
+}
+
+async function loadComments() {
+  const el = document.getElementById('commentList');
+  try {
+    const r = await fetch(`/api/comments/${encodeURIComponent(subject)}`);
+    const rows = await r.json();
+    if (!rows.length) {
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:10px;">No comments yet.</p>';
+      return;
+    }
+    el.innerHTML = rows.map(c => `
+      <div class="comment-row">
+        <strong>${c.name}</strong>
+        <p>${c.message}</p>
+      </div>
+    `).join('');
+  } catch {}
+}
+
+function setupCommentForm() {
+  const btn = document.getElementById('commentSend');
+  const input = document.getElementById('commentMsg');
+  btn.onclick = async () => {
+    const msg = input.value.trim();
+    if (!msg) return;
+    btn.disabled = true;
+    await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, name: nickname, message: msg })
+    });
+    input.value = '';
+    btn.disabled = false;
+    loadComments();
+  };
+  input.onkeydown = (e) => { if (e.key === 'Enter') btn.click(); };
+}
+
+function setupTabs() {
+  document.querySelectorAll('.tabs-mini button').forEach(b => {
+    b.onclick = () => {
+      document.querySelectorAll('.tabs-mini button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('pane-lb').classList.toggle('hidden', b.dataset.pane !== 'lb');
+      document.getElementById('pane-cm').classList.toggle('hidden', b.dataset.pane !== 'cm');
+    };
+  });
 }
 
 loadQuiz();
