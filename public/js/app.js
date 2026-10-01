@@ -43,16 +43,22 @@ fetch('/api/subjects')
       return;
     }
 
-    wrap.innerHTML = list.map(s => `
-      <div class="subject-card" data-subject="${s.subject}">
-        <div class="icon"><i class="fa-solid ${subjectIcons[s.subject] || 'fa-book'}"></i></div>
-        <h4>${s.subject}</h4>
-        <span>${s.count} questions</span>
-        <button class="share-btn" data-subject="${s.subject}" title="Copy share link">
-          <i class="fas fa-link"></i>
-        </button>
-      </div>
-    `).join('');
+    wrap.innerHTML = list.map(s => {
+      const best = localStorage.getItem('best_' + s.subject);
+      const bestBadge = best
+        ? `<div class="best-badge"><i class="fas fa-trophy"></i> ${best}</div>`
+        : '';
+      return `
+        <div class="subject-card" data-subject="${s.subject}">
+          ${bestBadge}
+          <div class="icon"><i class="fa-solid ${subjectIcons[s.subject] || 'fa-book'}"></i></div>
+          <h4>${s.subject}</h4>
+          <button class="share-btn" data-subject="${s.subject}" title="Copy share link">
+            <i class="fas fa-link"></i>
+          </button>
+        </div>
+      `;
+    }).join('');
 
     document.querySelectorAll('.subject-card').forEach(card => {
       card.addEventListener('click', (e) => {
