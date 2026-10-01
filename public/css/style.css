@@ -467,3 +467,162 @@ body {
   .lb-row { grid-template-columns: 28px 1fr auto; font-size: 12px; }
   .lb-time { display: none; }
 }
+/* ===== v3 additions ===== */
+
+/* Hide question count (admin-only info) */
+.subject-card span { display: none !important; }
+
+/* Personal best badge */
+.best-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #f5a623, #ff6b35);
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Contact link in topbar */
+.socials .contact-link {
+  background: #229ED9;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-size: 13px;
+  text-decoration: none;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.socials .contact-link:hover { background: #1a7faa; }
+
+/* ==== ASSISTANCE PANEL ==== */
+.assistance-panel {
+  margin-top: 50px;
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  border-radius: 18px;
+  padding: 26px 22px;
+  box-shadow: 0 10px 30px rgba(59,130,246,0.15);
+}
+.assist-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1e3a8a;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.assist-header i { font-size: 26px; color: #f59e0b; }
+.assist-header h3 {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.assist-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+}
+.assist-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 20px;
+  border-radius: 30px;
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  transition: transform 0.15s;
+}
+.assist-btn:hover { transform: translateY(-2px); }
+.assist-btn.wa { background: #0b6e4f; }
+.assist-btn.tg { background: #229ED9; }
+.assist-btn.site { background: #0e5a6c; }
+.assist-btn.site-alt { background: #1e3a8a; }
+
+/* Per-channel timer badge */
+.ch-timer {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 2px 8px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  font-weight: 700;
+  min-width: 28px;
+  text-align: center;
+  display: none;
+}
+.ch-timer.done { background: #16a34a; color: white; }
+.btn-wa.done { background: #128C7E; }
+
+/* Continue button */
+.continue-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: not-allowed;
+  font-weight: 600;
+  font-size: 14px;
+  opacity: 0.5;
+  transition: 0.3s;
+  margin-top: 4px;
+  background: #30363d;
+  color: var(--text);
+}
+.continue-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.continue-btn.unlocked {
+  opacity: 1;
+  cursor: pointer;
+  background: var(--gradient);
+  color: #000;
+  animation: pulse 1.6s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Subject card share button */
+.subject-card { position: relative; }
+.share-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(245,166,35,0.15);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+}
+.share-btn:hover { background: var(--primary); color: #000; }
+
+/* Footer */
+.site-footer {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  margin-top: 40px;
+}
+.site-footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
