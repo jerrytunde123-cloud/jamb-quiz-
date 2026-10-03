@@ -8,10 +8,40 @@ let answers = {};
 let startTime = Date.now();
 let timeLeft = 300;
 let timerInterval = null;
+let submittedResult = null; // store for review
 
 const nickname = localStorage.getItem('nickname') || 'Anonymous';
 document.getElementById('nicknameBadge').textContent = `👤 ${nickname}`;
 
+/* ==========================================================
+   KATEX RENDERING
+   ========================================================== */
+function renderMath(el) {
+  if (!el) return;
+  if (typeof renderMathInElement !== 'function') {
+    // KaTeX hasn't loaded yet — retry once
+    setTimeout(() => renderMath(el), 150);
+    return;
+  }
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$', right: '$', display: false }
+      ],
+      throwOnError: false,
+      errorColor: '#ef4444'
+    });
+  } catch (e) {
+    console.warn('KaTeX render error:', e);
+  }
+}
+
+/* ==========================================================
+   QUIZ LOAD
+   ========================================================== */
 async function loadQuiz() {
   if (!subject) {
     alert('No subject specified');
@@ -54,7 +84,10 @@ function render() {
   document.getElementById('progress').style.width =
     `${((current + 1) / quiz.questions.length) * 100}%`;
 
-  document.getElementById('questionText').innerHTML = q.question;
+  // Render question with KaTeX
+  const qText = document.getElementById('questionText');
+  qText.innerHTML = q.question;
+  renderMath(qText);
 
   const imgBox = document.getElementById('questionImage');
   if (q.image) {
@@ -68,14 +101,18 @@ function render() {
   const letters = ['A', 'B', 'C', 'D'];
   const opts = [q.optionA, q.optionB, q.optionC, q.optionD];
 
-  document.getElementById('options').innerHTML = opts.map((o, i) => `
+  const optionsBox = document.getElementById('options');
+  optionsBox.innerHTML = opts.map((o, i) => `
     <button class="option ${answers[q.id] === i ? 'selected' : ''}" data-idx="${i}">
       <span class="letter">${letters[i]}</span>
       <span class="opt-text">${o}</span>
     </button>
   `).join('');
 
-  document.querySelectorAll('.option').forEach(btn => {
+  // Render each option with KaTeX
+  optionsBox.querySelectorAll('.opt-text').forEach(el => renderMath(el));
+
+  optionsBox.querySelectorAll('.option').forEach(btn => {
     btn.onclick = () => {
       answers[q.id] = parseInt(btn.dataset.idx);
       render();
@@ -100,6 +137,9 @@ document.getElementById('nextBtn').onclick = () => {
 };
 document.getElementById('submitBtn').onclick = submitQuiz;
 
+/* ==========================================================
+   SUBMIT
+   ========================================================== */
 async function submitQuiz() {
   clearInterval(timerInterval);
   const timeTaken = Math.round((Date.now() - startTime) / 1000);
@@ -111,6 +151,7 @@ async function submitQuiz() {
       body: JSON.stringify({ quizId: quiz.quizId, answers, timeTaken, nickname })
     });
     const result = await res.json();
+    submittedResult = result;
 
     document.getElementById('resultScore').textContent =
       `${result.score} / ${result.total}`;
@@ -122,7 +163,6 @@ async function submitQuiz() {
     document.getElementById('resultMsg').textContent =
       `You took ${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s.`;
 
-    // Personal best
     const key = 'best_' + subject;
     const prevBest = parseInt(localStorage.getItem(key) || '0');
     const pct = Math.round((result.score / result.total) * 100);
@@ -149,12 +189,127 @@ async function submitQuiz() {
     loadComments();
     setupCommentForm();
     setupTabs();
+    setupReview();
   } catch (e) {
     alert('Failed to submit quiz');
     console.error(e);
   }
 }
 
+/* ==========================================================
+   REVIEW
+   ========================================================== */
+function setupReview() {
+  document.getElementById('reviewBtn').onclick = openReview;
+  document.getElementById('reviewClose').onclick = closeReview;
+  document.getElementById('reviewBackBtn').onclick = closeReview;
+}
+
+function openReview() {
+  document.getElementById('resultModal').classList.add('hidden');
+  document.getElementById('reviewModal').classList.remove('hidden');
+
+  const list = document.getElementById('reviewList');
+  const letters = ['A', 'B', 'C', 'D'];
+  let correctCount = 0;
+
+  list.innerHTML = quiz.questions.map((q, i) => {
+    const userAns = answers[q.id];
+    // We don't have "correct" from the client, so we need the server to return it.
+    // Since we don't, we send the answers with the quiz so the server can grade.
+    // Fallback: we use the answers the server already graded against.
+    return ''; // Placeholder — replaced by async load below
+  }).join('');
+
+  // Fetch correct answers from server
+  fetch('/api/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subject: subject,
+      questionIds: quiz.questions.map(q => q.id)
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      const keyMap = {};
+      (data.answers || []).forEach(a => { keyMap[a.id] = a.correct; });
+
+      list.innerHTML = quiz.questions.map((q, i) => {
+        const userAns = answers[q.id];
+        const correctIdx = keyMap[q.id];
+        const isCorrect = userAns === correctIdx;
+        const isSkipped = userAns === undefined;
+        if (isCorrect) correctCount++;
+
+        const opts = [q.optionA, q.optionB, q.optionC, q.optionD];
+        const userLetter = isSkipped ? '—' : letters[userAns];
+        const correctLetter = letters[correctIdx];
+
+        return `
+          <div class="review-item ${isCorrect ? 'correct' : 'wrong'}">
+            <div class="review-q-header">
+              <span class="review-num">Q${i + 1}</span>
+              <span class="review-tag ${isCorrect ? 'ok' : 'bad'}">
+                ${isCorrect ? '✓ Correct' : (isSkipped ? '⊘ Skipped' : '✗ Wrong')}
+              </span>
+            </div>
+            <div class="review-question"></div>
+            ${q.image ? `<img class="review-img" src="${q.image}" onerror="this.style.display='none'">` : ''}
+            <div class="review-options">
+              ${opts.map((o, oi) => {
+                let cls = '';
+                if (oi === correctIdx) cls = 'correct-opt';
+                else if (oi === userAns) cls = 'wrong-opt';
+                return `
+                  <div class="review-opt ${cls}">
+                    <span class="letter">${letters[oi]}</span>
+                    <span class="opt-text"></span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div class="review-answer-line">
+              Your answer: <strong>${userLetter}</strong> ·
+              Correct answer: <strong style="color:#22c55e">${correctLetter}</strong>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Now insert text + render math for each review item
+      const items = list.querySelectorAll('.review-item');
+      items.forEach((item, i) => {
+        const q = quiz.questions[i];
+        const qEl = item.querySelector('.review-question');
+        qEl.textContent = q.question;
+        renderMath(qEl);
+
+        const optEls = item.querySelectorAll('.review-opt .opt-text');
+        const opts = [q.optionA, q.optionB, q.optionC, q.optionD];
+        optEls.forEach((el, oi) => {
+          el.textContent = opts[oi];
+          renderMath(el);
+        });
+      });
+
+      document.getElementById('reviewSummary').textContent =
+        `You got ${correctCount} out of ${quiz.questions.length} correct.`;
+    })
+    .catch(err => {
+      console.error(err);
+      list.innerHTML = '<p style="color:var(--danger)">Failed to load review.</p>';
+    });
+}
+
+function closeReview() {
+  document.getElementById('reviewModal').classList.add('hidden');
+  document.getElementById('resultModal').classList.remove('hidden');
+}
+
+/* ==========================================================
+   LEADERBOARD + COMMENTS
+   ========================================================== */
 async function loadLeaderboard() {
   const el = document.getElementById('leaderboard');
   try {
