@@ -129,6 +129,18 @@ app.post('/api/comments', (req, res) => {
    DEEP LINK: /s/<subject-slug>  →  /?subject=...
    ============================================================ */
 
+// Review — returns correct answers for given question IDs
+app.post('/api/review', (req, res) => {
+  const { questionIds } = req.body;
+  if (!Array.isArray(questionIds) || !questionIds.length) {
+    return res.status(400).json({ error: 'questionIds required' });
+  }
+  const placeholders = questionIds.map(() => '?').join(',');
+  const rows = db.prepare(`
+    SELECT id, correct FROM questions WHERE id IN (${placeholders})
+  `).all(...questionIds);
+  res.json({ answers: rows });
+});
 app.get('/s/:slug', (req, res) => {
   const slug = req.params.slug.toLowerCase().replace(/-/g, '').replace(/\s+/g, '');
   const match = db.prepare(`
