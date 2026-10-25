@@ -8,7 +8,6 @@ export const CHANNELS = [
     id: "ch1",
     label: "Join Main Channel",
     icon: "fab fa-whatsapp",
-    // Replaced with the new link you provided earlier
     href: "https://whatsapp.com/channel/0029VbD2bkWLNSZwxGpz2k0x",
   },
   {
@@ -25,9 +24,9 @@ export const OPTIONAL_CHANNEL = {
 };
 
 /**
- * Mobile WhatsApp deep link interceptor.
- * Uses a hidden iframe to prevent the "blank tab" issue on Safari/iOS.
- * If the user cancels, it falls back to the web URL perfectly.
+ * FIXED: Mobile WhatsApp deep link interceptor.
+ * Uses a hidden iframe to prevent the page from reloading/redirecting.
+ * Keeps the user on the exact modal they were on.
  */
 export function handleWhatsAppDeepLink(
   e: React.MouseEvent<HTMLAnchorElement>,
@@ -39,7 +38,7 @@ export function handleWhatsAppDeepLink(
   const isMobile =
     typeof navigator !== "undefined" &&
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    
+
   // If on desktop, let the browser handle the normal link
   if (!isMobile) return;
 
@@ -47,13 +46,13 @@ export function handleWhatsAppDeepLink(
   const channelCode = match[1];
   const deepLink = `whatsapp://channel/${channelCode}`;
 
-  // Create a hidden iframe to trigger the app without leaving the browser
+  // Create hidden iframe to trigger the app without leaving the page
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
   iframe.src = deepLink;
   document.body.appendChild(iframe);
 
-  // Fallback: If the app doesn't open within 1.2 seconds, open the web URL
+  // Fallback: If app doesn't open in 1.2s, open the web link in a new tab
   const fallbackTimer = setTimeout(() => {
     window.open(httpsUrl, "_blank", "noopener,noreferrer");
   }, 1200);
@@ -67,17 +66,15 @@ export function handleWhatsAppDeepLink(
     }
   };
 
-  // If the page becomes hidden (user successfully switched to WhatsApp app), 
-  // clear the fallback timer so we don't double-open.
+  // If user actually switches to WhatsApp, cancel the fallback web redirect
   const onHidden = () => {
     if (document.hidden) {
       clearTimeout(fallbackTimer);
       setTimeout(cleanup, 300);
     }
   };
+  
   document.addEventListener("visibilitychange", onHidden, { once: true });
-
-  // Cleanup iframe regardless after 2 seconds
   setTimeout(cleanup, 2000);
 }
 
@@ -112,29 +109,34 @@ export function WhatsAppGate({
   const pendingChannels = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    const currentTimers = timers.current;
+    
     function completePending() {
-      // Safari/Chrome may throttle setInterval while the tab is backgrounded
-      // (e.g. after opening WhatsApp). When the user returns, finish any
-      // in-flight channel joins immediately.
+      // Safari/Chrome throttle setInterval while backgrounded.
+      // When the user returns, finish any in-flight joins immediately.
       pendingChannels.current.forEach((chId) => {
-        const iv = timers.current[chId];
+        const iv = currentTimers[chId];
         if (iv) {
           clearInterval(iv);
-          delete timers.current[chId];
+          delete currentTimers[chId];
         }
         setSecondsLeft((prev) => ({ ...prev, [chId]: 0 }));
         setJoined((prev) => ({ ...prev, [chId]: true }));
       });
       pendingChannels.current.clear();
     }
+    
     const onVisible = () => {
       if (document.visibilityState === "visible") completePending();
     };
     const onFocus = () => completePending();
+    
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onFocus);
     window.addEventListener("pageshow", onFocus);
+    
     return () => {
+      Object.values(currentTimers).forEach((iv) => clearInterval(iv));
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("pageshow", onFocus);
@@ -156,12 +158,9 @@ export function WhatsAppGate({
   ) {
     if (joined[chId] || timers.current[chId]) return;
 
-    // Trigger the deep link logic
     handleWhatsAppDeepLink(e, href);
-
     pendingChannels.current.add(chId);
 
-    // Start the 5-second unlock timer
     let sec = 5;
     setSecondsLeft((prev) => ({ ...prev, [chId]: sec }));
 
