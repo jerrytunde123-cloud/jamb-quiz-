@@ -47,57 +47,6 @@ export function WhatsAppGate({
 
   // Handlers
   const handleChannelClick = (channelId: Channel["id"]) => {
-    // 1. Find the channel URL based on the ID
-    const channel = CHANNELS.find((c) => c.id === channelId);
-    if (channel) {
-      const httpsUrl = channel.href;
-      const match = httpsUrl.match(/whatsapp\.com\/channel\/([A-Za-z0-9]+)/);
-
-      if (match) {
-        const isMobile =
-          typeof navigator !== "undefined" &&
-          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        // 2. Trigger Deep Link on Mobile
-        if (isMobile) {
-          const channelCode = match[1];
-          const deepLink = `whatsapp://channel/${channelCode}`;
-
-          // Create hidden iframe to trigger "Open in WhatsApp" prompt
-          const iframe = document.createElement("iframe");
-          iframe.style.display = "none";
-          iframe.src = deepLink;
-          document.body.appendChild(iframe);
-
-          // Fallback: If app doesn't open in 1.2s, open web URL
-          const fallbackTimer = setTimeout(() => {
-            window.open(httpsUrl, "_blank", "noopener,noreferrer");
-          }, 1200);
-
-          // Cleanup iframe
-          const cleanup = () => {
-            clearTimeout(fallbackTimer);
-            try {
-              document.body.removeChild(iframe);
-            } catch {
-              /* already removed */
-            }
-          };
-
-          // If user successfully switches to app, clear the fallback timer
-          const onHidden = () => {
-            if (document.hidden) {
-              clearTimeout(fallbackTimer);
-              setTimeout(cleanup, 300);
-            }
-          };
-          document.addEventListener("visibilitychange", onHidden, { once: true });
-          setTimeout(cleanup, 2000);
-        }
-      }
-    }
-
-    // 3. Mark channel as joined and start 5-second timer
     joinChannel(channelId);
   };
 
