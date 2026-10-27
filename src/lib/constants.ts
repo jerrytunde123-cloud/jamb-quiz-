@@ -1,25 +1,21 @@
+// src/lib/constants.ts (or wherever CHANNELS is)
 export const CHANNELS = [
   {
     id: "ch1",
     label: "Join Main Channel",
     icon: "fab fa-whatsapp",
-    href: "https://whatsapp.com/channel/0029VbD2bkWLNSZwxGpz2k0x",
-    deepLinkCode: "0029VbD2bkWLNSZwxGpz2k0x",
+    // We'll use the deep link format: whatsapp://channel/CODE
+    href: "whatsapp://channel/0029VbD2bkWLNSZwxGpz2k0x",
+    // Keep the web fallback just in case
+    webUrl: "https://whatsapp.com/channel/0029VbD2bkWLNSZwxGpz2k0x",
   },
   {
     id: "ch2",
     label: "JAMB UTME",
     icon: "fab fa-whatsapp",
-    href: "https://whatsapp.com/channel/0029VbDTOmB1t90jcv9gLf0q",
-    deepLinkCode: "0029VbDTOmB1t90jcv9gLf0q",
+    href: "whatsapp://channel/0029VbDTOmB1t90jcv9gLf0q",
+    webUrl: "https://whatsapp.com/channel/0029VbDTOmB1t90jcv9gLf0q",
   },
-] as const;
+];
 
-export const OPTIONAL_CHANNEL = {
-  label: "2027 JAMBITES",
-  href: "https://whatsapp.com/channel/0029VbCwT4KAojYzRNFvpT1h",
-  deepLinkCode: "0029VbCwT4KAojYzRNFvpT1h",
-} as const;
-
-export type ChannelId = (typeof CHANNELS)[number]["id"];
-export type Channel = (typeof CHANNELS)[number];
+export type Channel = typeof CHANNELS[0];
