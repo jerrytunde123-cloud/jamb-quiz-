@@ -3,8 +3,8 @@ export const CHANNELS = [
     id: "ch1",
     label: "Join Main Channel",
     icon: "fab fa-whatsapp",
-    href: "https://whatsapp.com/channel/0029VbD2bkWLNSZwxGpz2k0x",
-    deepLinkCode: "0029VbD2bkWLNSZwxGpz2k0x",
+    href: "https://whatsapp.com/channel/0029Vb8Whka2P59oetvhwN3B",
+    deepLinkCode: "0029Vb8Whka2P59oetvhwN3B",
   },
   {
     id: "ch2",
