@@ -19,7 +19,7 @@ export const WHATSAPP_CHANNELS: readonly WhatsAppChannel[] = [
     id: "main",
     name: "Main Channel",
     description: "Daily JAMB questions, exam tips, and study updates.",
-    code: "0029VbD2bkWLNSZwxGpz2k0x",
+    code: "0029Vb8Whka2P59oetvhwN3B",
     required: true,
     followers: "Join 13K+ students",
   },
