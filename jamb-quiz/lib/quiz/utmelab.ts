@@ -1,7 +1,7 @@
 /**
  * UTME Lab question API client.
  *
- * Talks to https://api.utmelab.com/api/v1 for the live question bank,
+ * Talks to https://api.jambmax.com/api/v1 for the live question bank,
  * subjects catalog, and comprehension passages.
  */
 import { readFile, writeFile } from "node:fs/promises";
@@ -19,7 +19,7 @@ import type {
 
 /* -------------------------- Configuration -------------------------- */
 const BASE_URL = (
-  process.env.UTMELAB_API_URL ?? "https://api.utmelab.com/api/v1"
+  process.env.UTMELAB_API_URL ?? "https://api.jambmax.com/api/v1"
 ).replace(/\/+$/, "");
 const EXAM = process.env.UTMELAB_EXAM ?? "JAMB";
 const API_KEY = process.env.UTMELAB_API_KEY ?? "";

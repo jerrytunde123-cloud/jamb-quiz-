@@ -140,7 +140,7 @@ key back only in the submit response (for the review screen).
 
 ### UTME Lab question API
 
-Base URL: `https://api.utmelab.com/api/v1` (override with `UTMELAB_API_URL`).
+Base URL: `https://api.jambmax.com/api/v1` (override with `UTMELAB_API_URL`).
 Every question call is authenticated with the server-only `UTMELAB_API_KEY`
 sent as `x-api-key`.
 
