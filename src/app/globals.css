@@ -392,6 +392,66 @@ a.subject-card:hover {
   color: var(--muted);
   margin-bottom: 8px;
 }
+
+/* ---------- Sponsor (one quiet placement per view) ---------- */
+.sponsor-banner {
+  margin: 0 auto 16px;
+  max-width: 440px;
+}
+.sponsor-banner-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+.sponsor-banner-link:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+.sponsor-banner-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.sponsor-tag {
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+.sponsor-text {
+  flex: 1;
+  min-width: 0;
+}
+.sponsor-copy,
+.sponsor-sub {
+  display: block;
+  line-height: 1.35;
+}
+.sponsor-copy {
+  font-size: 13px;
+}
+.sponsor-sub {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.sponsor-arrow {
+  flex: 0 0 auto;
+  color: var(--primary);
+  font-size: 14px;
+}
+
 .lb-line { display: flex; align-items: center; gap: 12px; }
 .lb-rank { color: var(--muted); font-weight: 700; width: 34px; }
 .lb-name { flex: 1; font-size: 14px; }

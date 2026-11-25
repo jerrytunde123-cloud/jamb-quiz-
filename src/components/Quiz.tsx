@@ -20,6 +20,7 @@ import { useMounted } from "@/lib/use-mounted";
 import { RichText } from "./RichText";
 import { Comments } from "./Comments";
 import { WhatsAppGate } from "./WhatsAppGate";
+import { SponsorBanner } from "./SponsorBanner";
 
 /** The bank serves four-option rows and a few five-option cloze questions. */
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
@@ -458,6 +459,9 @@ export function Quiz({ slug, name, challenger, challengeScore, autoStart }: Prop
             </a>
           </div>
         </div>
+
+        {/* One sponsor slot only: after sharing, before the review tabs. */}
+        <SponsorBanner />
 
         <div className="tabs-mini">
           <button
